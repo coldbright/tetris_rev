@@ -262,6 +262,7 @@ io.on('connection', (socket) => {
         console.log(rooms[roomId]);
         socket.to(roomId).emit("higher_gauge", { player1_health, player2_health });
         socket.emit("lower_gauge", { player1_health, player2_health });
+        console.log("찬희");
     });
 
     socket.on("leave_room",(roomId) => {
