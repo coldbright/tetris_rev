@@ -22,6 +22,14 @@
 <div class="falling-item_hide_block_top"></div>
 <div class="falling-item_hide_block_bottom"></div>
 
+<!--<div class="rank_screen">-->
+<!--  <div id="rank_img" style="z-index: 30; width: 20vw; height: 20vh;"></div>-->
+<!--</div>-->
+<!--<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #d3d2ff, #e194d8); top: 20vh;"  ></div>-->
+<!--<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #3a37f9, #94bde1); top: 45vh;"></div>-->
+<!--<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #fffad2, #c6e194); top: 70vh;"></div>-->
+
+
 <input type="text" id="roomInput" maxlength="4" placeholder="방 코드 입력" style="position: absolute; margin-left: 50vw; margin-top: 30vh;">
 <button onclick="joinRoom()" style="position: absolute; margin-left: 50vw; margin-top: 35vh;">입장</button>
 
@@ -59,6 +67,37 @@
       }
     });
 
+    function rank_score(){
+
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("score");
+      const user = parseJwt(token);
+      let tier_score = 0;
+      const username = user.username;
+      socket.emit("get_score", (username));
+      socket.on("updatescore", (score) => {
+        let rank_score = score;
+        const rank_img = document.getElementById("rank_img");
+
+        let imagePath = "../rank_img/bronze.svg"; // 기본 이미지
+        console.log("hello")
+        if (rank_score >= 100 && rank_score < 200) {
+          imagePath = "../rank_img/silver.svg";
+        } else if (rank_score >= 200 && rank_score < 300) {
+          imagePath = "../rank_img/gold.svg";
+        } else if (rank_score >= 300 && rank_score < 400) {
+          imagePath = "../rank_img/diamond.svg";
+        } else if (rank_score >= 400) {
+          imagePath = "../rank_img/master.svg";
+        }
+
+        rank_img.src = imagePath;
+      });
+    });
+
+
     window.joinRoom = function () {
       if (!token) {
         alert("로그인이 필요합니다.");
@@ -90,6 +129,9 @@
       }
     }
   });
+
+
+
 
 
 

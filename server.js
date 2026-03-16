@@ -21,11 +21,11 @@ require('dotenv').config();
 
 const rooms = {};
 
-
 app.use(express.static(path.join(__dirname, 'public/lobby')));
 app.use(express.static(path.join(__dirname, 'public/waiting_room')));
 app.use(express.static(path.join(__dirname, 'public/login&register')));
 app.use(express.static(path.join(__dirname, 'public/tetris_front')));
+app.use(express.static(path.join(__dirname, 'public/rank_img')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -212,6 +212,27 @@ io.on('connection', (socket) => {
         console.log(rooms);
     });
 
+    socket.on("get_score", (username)=>{
+        console.log("good");
+        connection.query(
+            "SELECT rank_score FROM tetris_user_accounts WHERE username = ?",
+            [username],
+            (error, results) => {
+                if (error) {
+                    console.log("bug");
+                    return res.status(500).json({ message: "서버 오류 발생" });
+                }
+                if (results.length === 0) {
+                    console.log("bug");
+                    return res.status(404).json({ message: "해당 유저를 찾을 수 없습니다" });
+                }
+                const score = res.status(200).json({ rank_score: results[0].rank_score });
+                console.log(score);
+                socket.emit("updatescore", score);
+            }
+        );
+    });
+
     socket.on("toggleReady", (isReady, roomId) => {
         const nickname = socket.data.nickname;
         toggleReady(roomId, nickname);
@@ -243,8 +264,8 @@ io.on('connection', (socket) => {
         const opponent_nickname = findOpponentNickname(rooms, roomId, nickname);
         const players = rooms[roomId];
         console.log(deletedThisTurn, roomId, nickname);
-        const deleteMapping = { 1: 2, 2: 6, 3: 10 };
-        const line_deleted = deleteMapping[deletedThisTurn] || 16;
+        const deleteMapping = { 1: 4, 2: 12, 3: 20 };
+        const line_deleted = deleteMapping[deletedThisTurn] || 32;
         changeHealth(rooms, roomId, nickname, line_deleted/2);
         changeHealth(rooms, roomId, opponent_nickname, -(line_deleted));
 
@@ -264,6 +285,7 @@ io.on('connection', (socket) => {
         socket.emit("lower_gauge", { player1_health, player2_health });
         console.log("찬희");
     });
+
 
     socket.on("leave_room",(roomId) => {
         removeUserFromRoom(roomId, socket.data.nickname);
@@ -289,6 +311,8 @@ io.on('connection', (socket) => {
             }
         }
     });
+
+
 });
 
 

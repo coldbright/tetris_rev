@@ -113,6 +113,15 @@
             color: white;
             z-index: 20;
         }
+
+        .health{
+            position: absolute;
+            width: 5vw;
+            height: 5vw;
+            top: 50vh;
+            border-radius: 10px;
+            background-color: #122740;
+        }
     </style>
 </head>
 <body>
@@ -124,11 +133,13 @@
 <div class="gauge-container left">
     <div class="gauge-fill" id="player1_fill"></div>
 </div>
+<div class="health left"></div>
 
 <!-- 우측 게이지 -->
 <div class="gauge-container right">
     <div class="gauge-fill" id="player2_fill"></div>
 </div>
+<div class="health right"></div>
 
 <!-- 테트리스 게임 UI -->
 <div class="wrapper-container">
