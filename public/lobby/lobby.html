@@ -1,140 +1,385 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="ko">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--  <link rel="stylesheet" href="lobby.css">-->
+<!--  <script defer src="lobby.js" type="module"></script>-->
+<!--  <script src="/socket.io/socket.io.js"></script>-->
+<!--  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>-->
+
+<!--  <title>Lobby</title>-->
+
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="top_bar">-->
+<!--  <div class="login" id="loginBtn" onclick="click_login()">Login</div>-->
+<!--  <div class="profile" id="profileBtn" style="display: none;">👤 <span id="username"></span></div>-->
+<!--</div>-->
+
+<!--<div class="game_screen"></div>-->
+<!--<div class="falling-item_hide_block_top"></div>-->
+<!--<div class="falling-item_hide_block_bottom"></div>-->
+
+<!--&lt;!&ndash;<div class="rank_screen">&ndash;&gt;-->
+<!--&lt;!&ndash;  <div id="rank_img" style="z-index: 30; width: 20vw; height: 20vh;"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;</div>&ndash;&gt;-->
+<!--&lt;!&ndash;<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #d3d2ff, #e194d8); top: 20vh;"  ></div>&ndash;&gt;-->
+<!--&lt;!&ndash;<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #3a37f9, #94bde1); top: 45vh;"></div>&ndash;&gt;-->
+<!--&lt;!&ndash;<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #fffad2, #c6e194); top: 70vh;"></div>&ndash;&gt;-->
+
+
+<!--<input type="text" id="roomInput" maxlength="4" placeholder="방 코드 입력" style="position: absolute; margin-left: 50vw; margin-top: 30vh;">-->
+<!--<button onclick="joinRoom()" style="position: absolute; margin-left: 50vw; margin-top: 35vh;">입장</button>-->
+
+
+
+<!--</body>-->
+<!--<script>-->
+<!--  document.addEventListener("DOMContentLoaded", () => {-->
+<!--    const token = localStorage.getItem('token');-->
+
+<!--    const loginBtn = document.getElementById('loginBtn');-->
+<!--    const profileBtn = document.getElementById('profileBtn');-->
+<!--    const usernameSpan = document.getElementById('username');-->
+
+<!--    profileBtn.addEventListener("click", () => {-->
+<!--      if (confirm("로그아웃 하시겠습니까?")) {-->
+<!--        localStorage.removeItem("token");-->
+<!--        window.location.reload();-->
+<!--      }-->
+<!--    });-->
+
+<!--    // 🔓 JWT가 있으면 사용자 정보 추출-->
+<!--    if (token) {-->
+<!--      const user = parseJwt(token);-->
+<!--      if (user && user.username) {-->
+<!--        loginBtn.style.display = "none";-->
+<!--        profileBtn.style.display = "inline-block";-->
+<!--        usernameSpan.textContent = user.username;-->
+<!--      }-->
+<!--    }-->
+
+<!--    const socket = io({-->
+<!--      auth: {-->
+<!--        token: token-->
+<!--      }-->
+<!--    });-->
+
+<!--    function rank_score(){-->
+
+<!--    }-->
+
+<!--    document.addEventListener("DOMContentLoaded", () => {-->
+<!--      console.log("score");-->
+<!--      const user = parseJwt(token);-->
+<!--      let tier_score = 0;-->
+<!--      const username = user.username;-->
+<!--      socket.emit("get_score", (username));-->
+<!--      socket.on("updatescore", (score) => {-->
+<!--        let rank_score = score;-->
+<!--        const rank_img = document.getElementById("rank_img");-->
+
+<!--        let imagePath = "../rank_img/bronze.svg"; // 기본 이미지-->
+<!--        console.log("hello")-->
+<!--        if (rank_score >= 100 && rank_score < 200) {-->
+<!--          imagePath = "../rank_img/silver.svg";-->
+<!--        } else if (rank_score >= 200 && rank_score < 300) {-->
+<!--          imagePath = "../rank_img/gold.svg";-->
+<!--        } else if (rank_score >= 300 && rank_score < 400) {-->
+<!--          imagePath = "../rank_img/diamond.svg";-->
+<!--        } else if (rank_score >= 400) {-->
+<!--          imagePath = "../rank_img/master.svg";-->
+<!--        }-->
+
+<!--        rank_img.src = imagePath;-->
+<!--      });-->
+<!--    });-->
+
+
+<!--    window.joinRoom = function () {-->
+<!--      if (!token) {-->
+<!--        alert("로그인이 필요합니다.");-->
+<!--        window.location.href = "/login";-->
+<!--        return;-->
+<!--      }-->
+<!--      const roomCode = document.getElementById("roomInput").value.trim();-->
+<!--      if (roomCode.length === 4) {-->
+<!--        window.location.href = `/room=${roomCode}`;-->
+<!--      } else {-->
+<!--        alert("4자리 알파벳을 입력하세요.");-->
+<!--      }-->
+<!--    };-->
+
+<!--    socket.on('roomFull', (data) => {-->
+<!--      alert(data.message);-->
+<!--    });-->
+
+<!--    window.click_login = function () {-->
+<!--      window.location.href = 'login';-->
+<!--    };-->
+
+<!--    // JWT 디코딩 함수-->
+<!--    function parseJwt(token) {-->
+<!--      try {-->
+<!--        return JSON.parse(atob(token.split('.')[1]));-->
+<!--      } catch (e) {-->
+<!--        return null;-->
+<!--      }-->
+<!--    }-->
+<!--  });-->
+
+
+
+
+
+
+<!--</script>-->
+
+<!--</html>-->
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="lobby.css">
-  <script defer src="lobby.js" type="module"></script>
+  <title>Lobby</title>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-  <title>Lobby</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #0f172a;
+      color: white;
+    }
 
+    /* TOP BAR */
+    .top_bar {
+      height: 60px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 20px;
+    }
+
+    .login {
+      background: #6366f1;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* MAIN */
+    .container {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    /* LEFT */
+    .game_screen {
+      width: 50%;
+      background: linear-gradient(to bottom left, #122740, #090a42);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* RIGHT */
+    .lobby_panel {
+      width: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .lobby_box {
+      background: #1e293b;
+      padding: 40px;
+      border-radius: 16px;
+      width: 300px;
+      text-align: center;
+    }
+
+    .lobby_box h1 {
+      margin-bottom: 20px;
+    }
+
+    /* INPUT */
+    input {
+      width: 94%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 10px;
+    }
+
+    /* BUTTON */
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #6366f1;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background: #4f46e5;
+    }
+
+    /* FALLING BLOCK */
+    .falling-item {
+      position: absolute;
+      font-size: 24px; /* 안 보일 수 있어서 추가 */
+      animation: fall 4s linear forwards;
+    }
+
+    @keyframes fall {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(100%);
+      }
+    }
+  </style>
 </head>
+
 <body>
 
 <div class="top_bar">
   <div class="login" id="loginBtn" onclick="click_login()">Login</div>
-  <div class="profile" id="profileBtn" style="display: none;">👤 <span id="username"></span></div>
+  <div id="profileBtn" style="display:none;">
+    👤 <span id="username"></span>
+<!--    <button onclick="logout()" style="margin-left:10px;">Logout</button>-->
+  </div>
 </div>
 
-<div class="game_screen"></div>
-<div class="falling-item_hide_block_top"></div>
-<div class="falling-item_hide_block_bottom"></div>
+<div class="container">
 
-<!--<div class="rank_screen">-->
-<!--  <div id="rank_img" style="z-index: 30; width: 20vw; height: 20vh;"></div>-->
-<!--</div>-->
-<!--<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #d3d2ff, #e194d8); top: 20vh;"  ></div>-->
-<!--<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #3a37f9, #94bde1); top: 45vh;"></div>-->
-<!--<div class="menu_screen" style="background-image: linear-gradient(to bottom left, #fffad2, #c6e194); top: 70vh;"></div>-->
+  <div class="game_screen"></div>
 
+  <div class="lobby_panel">
+    <div class="lobby_box">
+      <h1>TETRIS</h1>
 
-<input type="text" id="roomInput" maxlength="4" placeholder="방 코드 입력" style="position: absolute; margin-left: 50vw; margin-top: 30vh;">
-<button onclick="joinRoom()" style="position: absolute; margin-left: 50vw; margin-top: 35vh;">입장</button>
+      <p id="userText">로그인이 필요합니다</p>
 
+      <input type="text" id="roomInput" maxlength="4" placeholder="방 코드 입력">
 
+      <button onclick="joinRoom()">방 입장</button>
+      <button onclick="createRoom()">방 만들기</button>
 
-</body>
+    </div>
+  </div>
+
+</div>
+
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem('token');
+  // ================= 로그인 처리 =================
+  const token = localStorage.getItem('token');
+  const loginBtn = document.getElementById('loginBtn');
+  const profileBtn = document.getElementById('profileBtn');
+  const usernameSpan = document.getElementById('username');
+  const userText = document.getElementById('userText');
 
-    const loginBtn = document.getElementById('loginBtn');
-    const profileBtn = document.getElementById('profileBtn');
-    const usernameSpan = document.getElementById('username');
+  if (token) {
+    const user = parseJwt(token);
+    if (user && user.username) {
+      // 버튼을 Logout으로 변경
+      loginBtn.textContent = "Logout";
 
-    profileBtn.addEventListener("click", () => {
-      if (confirm("로그아웃 하시겠습니까?")) {
-        localStorage.removeItem("token");
-        window.location.reload();
-      }
-    });
+      // 유저 표시
+      usernameSpan.textContent = user.username;
+      profileBtn.style.display = "block";
+      userText.textContent = user.username + "님 환영합니다";
 
-    // 🔓 JWT가 있으면 사용자 정보 추출
-    if (token) {
-      const user = parseJwt(token);
-      if (user && user.username) {
-        loginBtn.style.display = "none";
-        profileBtn.style.display = "inline-block";
-        usernameSpan.textContent = user.username;
-      }
-    }
-
-    const socket = io({
-      auth: {
-        token: token
-      }
-    });
-
-    function rank_score(){
-
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      console.log("score");
-      const user = parseJwt(token);
-      let tier_score = 0;
-      const username = user.username;
-      socket.emit("get_score", (username));
-      socket.on("updatescore", (score) => {
-        let rank_score = score;
-        const rank_img = document.getElementById("rank_img");
-
-        let imagePath = "../rank_img/bronze.svg"; // 기본 이미지
-        console.log("hello")
-        if (rank_score >= 100 && rank_score < 200) {
-          imagePath = "../rank_img/silver.svg";
-        } else if (rank_score >= 200 && rank_score < 300) {
-          imagePath = "../rank_img/gold.svg";
-        } else if (rank_score >= 300 && rank_score < 400) {
-          imagePath = "../rank_img/diamond.svg";
-        } else if (rank_score >= 400) {
-          imagePath = "../rank_img/master.svg";
+      // 🔥 클릭 이벤트 변경
+      loginBtn.onclick = function () {
+        if (confirm("로그아웃 하시겠습니까?")) {
+          localStorage.removeItem("token");
+          location.reload();
         }
-
-        rank_img.src = imagePath;
-      });
-    });
-
-
-    window.joinRoom = function () {
-      if (!token) {
-        alert("로그인이 필요합니다.");
-        window.location.href = "/login";
-        return;
-      }
-      const roomCode = document.getElementById("roomInput").value.trim();
-      if (roomCode.length === 4) {
-        window.location.href = `/room=${roomCode}`;
-      } else {
-        alert("4자리 알파벳을 입력하세요.");
-      }
-    };
-
-    socket.on('roomFull', (data) => {
-      alert(data.message);
-    });
-
-    window.click_login = function () {
-      window.location.href = 'login';
-    };
-
-    // JWT 디코딩 함수
-    function parseJwt(token) {
-      try {
-        return JSON.parse(atob(token.split('.')[1]));
-      } catch (e) {
-        return null;
-      }
+      };
     }
+  }
+
+  function click_login() {
+    window.location.href = 'login';
+  }
+
+  function logout() {
+    if (confirm("로그아웃 하시겠습니까?")) {
+      localStorage.removeItem("token");
+      location.reload();
+    }
+  }
+
+  // ================= SOCKET =================
+  const socket = io({
+    auth: { token }
   });
 
+  // ================= 방 입장 =================
+  function joinRoom() {
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      location.href = "/login";
+      return;
+    }
+    const code = document.getElementById("roomInput").value.trim();
 
+    if (code.length === 4) {
+      location.href = `/room=${code}`;
+    } else {
+      alert("4자리 입력");
+    }
+  }
 
+  // ================= 방 생성 =================
+  function createRoom() {
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      location.href = "/login";
+      return;
+    }
+    const code = Math.random().toString(36).substring(2,6).toUpperCase();
+    location.href = `/room=${code}`;
+  }
 
+  // ================= JWT =================
+  function parseJwt(token) {
+    try {
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch {
+      return null;
+    }
+  }
 
+  // ================= 테트리스 애니메이션 =================
+  function createFallingItem() {
+    const item = document.createElement("div");
+    item.classList.add("falling-item");
 
+    // 🔥 위치 지정
+    item.style.left = Math.random() * 90 + "%";
+    item.style.top = "-50px"; // 위에서 시작
+
+    item.innerHTML = "🟦";
+
+    document.querySelector(".game_screen").appendChild(item);
+
+    setTimeout(() => item.remove(), 4000);
+  }
+
+  setInterval(createFallingItem, 300);
 </script>
 
+</body>
 </html>

@@ -38,7 +38,7 @@ app.get('/room=:room', (req, res) => {
 });
 
 app.get('/room=:room/game', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'tetris_front/all_in_one_tetris_test.html'));
+    res.sendFile(path.join(__dirname, 'public', 'tetris_front/all_in_one_tetris.html'));
 });
 
 app.get('/login', (req, res) => {
@@ -186,7 +186,6 @@ io.on('connection', (socket) => {
         return null; // 닉네임 못 찾음
     }
 
-
     socket.on("joinRoom", ({ roomId }) => {
         const room = io.sockets.adapter.rooms.get(roomId);
         const numClients = room ? room.size : 0;
@@ -283,7 +282,6 @@ io.on('connection', (socket) => {
         console.log(rooms[roomId]);
         socket.to(roomId).emit("higher_gauge", { player1_health, player2_health });
         socket.emit("lower_gauge", { player1_health, player2_health });
-        console.log("찬희");
     });
 
 
