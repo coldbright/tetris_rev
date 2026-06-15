@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const saltRounds = 10;
-const SECRET_KEY = 'very-very-not-that-secret-key'; // 보안상 환경변수로 저장 권장
+const SECRET_KEY = process.env.SECRET_KEY; // 보안상 환경변수로 저장 권장
 
 const mysql = require("mysql");
 const encoder = bodyParser.urlencoded();
