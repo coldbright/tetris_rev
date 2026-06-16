@@ -141,12 +141,6 @@
         alert("이 방은 이미 가득 찼습니다. 로비로 돌아갑니다.");
         window.location.href = "/";
     });
-    // socket.on("updateWaitingRoom", (users) => {
-    //     // 예시: 화면에 유저 리스트 표시
-    //     const list = document.getElementById("user-list");
-    //     list.innerHTML = users.map((name) => `<li>${name}</li>`).join("");
-    //
-    // });
 
     socket.on("opponentReadyStatus", ({ nickname, isReady }) => {
         document.getElementById("player2-status").innerText = isReady

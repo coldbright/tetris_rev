@@ -227,22 +227,22 @@
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
                 <span class="text-zinc-500 dark:text-zinc-300">총 플레이</span>
-                <span class="font-bold text-xl">248</span>
+                <span id="totalGames" class="font-bold text-xl">248</span>
             </div>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
                 <span class="text-zinc-500 dark:text-zinc-300">승리</span>
-                <span class="font-bold text-xl text-emerald-400">182</span>
+                <span id="wins" class="font-bold text-xl text-emerald-400">182</span>
             </div>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
                 <span class="text-zinc-500 dark:text-zinc-300">패배</span>
-                <span class="font-bold text-xl text-red-400">66</span>
+                <span id="losses" class="font-bold text-xl text-red-400">66</span>
             </div>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
                 <span class="text-zinc-500 dark:text-zinc-300">승률</span>
-                <span class="font-bold text-xl">73%</span>
+                <span id="winRate" class="font-bold text-xl">73%</span>
             </div>
         </div>
 
@@ -250,11 +250,15 @@
         <div class="mt-8">
             <div class="flex items-center justify-between mb-2 text-sm">
                 <span class="text-zinc-500 dark:text-zinc-300">랭크 포인트</span>
-                <span>1450 / 2000</span>
+                <span id="rankPoints">1450 / 2000</span>
             </div>
 
             <div class="w-full h-4 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
-                <div class="h-full w-[72%] bg-gradient-to-r from-emerald-400 to-cyan-400"></div>
+                <div
+                        id="rankBar"
+                        class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400"
+                        style="width:0%"
+                ></div>
             </div>
         </div>
 
@@ -336,6 +340,8 @@
         const user = parseJwt(token);
 
         if(user){
+
+            loadStats(user.username);
 
             document.getElementById("loginButtons")
                 .innerHTML = `
@@ -499,6 +505,51 @@
         localStorage.removeItem("token");
         location.reload();
 
+    }
+
+    async function loadStats(username){
+
+        try{
+
+            const response =
+                await fetch(`/api/stats/${username}`);
+
+            const stats =
+                await response.json();
+
+            if(!response.ok){
+                return;
+            }
+
+            document.getElementById("totalGames")
+                .textContent = stats.total_games;
+
+            document.getElementById("wins")
+                .textContent = stats.wins;
+
+            document.getElementById("losses")
+                .textContent = stats.losses;
+
+            document.getElementById("winRate")
+                .textContent = stats.win_rate + "%";
+
+            document.getElementById("rankPoints")
+                .textContent =
+                `${stats.rank_points} / 2000`;
+
+            const percent =
+                Math.min(
+                    (stats.rank_points / 2000) * 100,
+                    100
+                );
+
+            document.getElementById("rankBar")
+                .style.width = percent + "%";
+
+        }
+        catch(err){
+            console.error(err);
+        }
     }
 
 </script>

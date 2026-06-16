@@ -17,12 +17,15 @@ const io = socketIo(server);
 const connection = require('./config/db');
 
 const userRouter = require('./routes/user');
+
+const statsRouter = require('./routes/stats');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/user', userRouter);
-require('dotenv').config();
+app.use('/api/stats', statsRouter);
 
+require('dotenv').config();
 const SECRET_KEY = process.env.SECRET_KEY; // 보안상 환경변수로 저장 권장
 
 
@@ -52,65 +55,10 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login&register/login.html'));
 });
 
-//로그인 API - JWT 발급
-// app.post('/login', encoder, (req, res) => {
-//     const { email, password } = req.body;
-//
-//     connection.query("SELECT * FROM tetris_user_accounts WHERE email = ?", [email], async (error, results) => {
-//         if (error) return res.status(500).json({ message: "서버 오류 발생" });
-//
-//         if (results.length === 0) return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
-//
-//         const user = results[0];
-//         const match = await bcrypt.compare(password, user.password);
-//
-//         if (!match) return res.status(401).json({ message: "이메일 또는 비밀번호가 올바르지 않습니다." });
-//
-//         // JWT 생성
-//         const token = jwt.sign(
-//             { id: user.id, username: user.username, email: user.email },
-//             SECRET_KEY,
-//             { expiresIn: '1h' }
-//         );
-//
-//         console.log("Login success");
-//         res.status(200).json({ message: "로그인 성공!", token, redirectUrl: "/" });
-//     });
-// });
-//
-// //회원가입 API
-// app.post("/register", async (req, res) => {
-//     const { username, email, password, password_confirm } = req.body;
-//
-//     if (password !== password_confirm) {
-//         return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
-//     }
-//
-//     connection.query("SELECT * FROM tetris_user_accounts WHERE email = ?", [email], async (error, results) => {
-//         if (error) return res.status(500).json({ message: "서버 오류 발생" });
-//
-//         if (results.length > 0) return res.status(409).json({ message: "이미 존재하는 이메일입니다." });
-//
-//         try {
-//             const hashedPassword = await bcrypt.hash(password, saltRounds);
-//             connection.query(
-//                 "INSERT INTO tetris_user_accounts (username, email, password) VALUES (?, ?, ?)",
-//                 [username, email, hashedPassword],
-//                 (error) => {
-//                     if (error) return res.status(500).json({ message: "회원가입 실패" });
-//                     res.status(200).json({ message: "회원가입 성공", redirectUrl: "/login" });
-//                 }
-//             );
-//         } catch (hashError) {
-//             res.status(500).json({ message: "비밀번호 해싱 실패" });
-//         }
-//     });
-// });
-
 //Socket 인증 처리
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
-    console.log("인증 시도")
+    // console.log("인증 시도")
     if (!token) return next(new Error("토큰이 없습니다."));
 
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
@@ -123,7 +71,6 @@ io.use((socket, next) => {
 //소켓 통신 처리
 io.on('connection', (socket) => {
     console.log('User connected:', socket.user?.username || socket.id);
-    console.log(12)
 
     function addUserToRoom(roomId, nickname) {
         if (!rooms[roomId]) {
@@ -147,18 +94,6 @@ io.on('connection', (socket) => {
     function toggleReady(roomId, nickname) {
         const user = rooms[roomId]?.find(user => user.nickname === nickname);
         if (user) user.ready = !user.ready;
-    }
-
-    function checkUserLength(obj, rid, name) {
-        const opponent = rooms[rid][1];
-
-        if (obj[rid] && Array.isArray(obj[rid])) {
-            const length = obj[rid].length;
-            if (length === 2) io.to(rid).emit("secondplayer", {
-                name
-            });
-            else if (length === 1) io.to(rid).emit("nosecondplayer");
-        }
     }
 
     function changeHealth(rooms, roomId, nickname, delta) {
@@ -314,7 +249,6 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit("higher_gauge", { player1_health, player2_health });
         socket.emit("lower_gauge", { player1_health, player2_health });
     });
-
 
     socket.on("leave_room",(roomId) => {
         removeUserFromRoom(roomId, socket.data.nickname);
