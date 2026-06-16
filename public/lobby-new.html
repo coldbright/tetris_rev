@@ -1,10 +1,507 @@
+<meta charset="UTF-8">
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+
+    <script>
+        tailwind = {
+            config: {
+                darkMode: 'class'
+            }
+        }
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tetris Arena Lobby</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-$END$
+<body class="bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white min-h-screen flex items-center justify-center p-6 transition-colors duration-300">
+
+<!-- Login Modal -->
+<div id="loginModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
+    <div class="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-8 shadow-2xl">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-3xl font-black">로그인</h2>
+            <button onclick="closeLogin()" class="text-2xl font-bold">✕</button>
+        </div>
+
+        <div class="space-y-5">
+            <div>
+                <label class="block mb-2 font-semibold">이메일</label>
+                <input
+                        id="loginEmail"
+                        type="email"
+                        placeholder="example@email.com"
+                        class="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 transition-colors"
+                />
+            </div>
+
+            <div>
+                <label class="block mb-2 font-semibold">비밀번호</label>
+                <input
+                        id="loginPassword"
+                        type="password"
+                        placeholder="********"
+                        class="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-5 py-4 outline-none focus:border-emerald-400 transition-colors"
+                />
+            </div>
+
+            <button onclick="login()" class="w-full bg-emerald-500 hover:scale-[1.02] transition-transform py-4 rounded-2xl font-bold text-lg shadow-lg">
+                로그인
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-8 shadow-2xl my-10">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-3xl font-black">회원가입</h2>
+            <button onclick="closeSignup()" class="text-2xl font-bold">✕</button>
+        </div>
+
+        <div class="space-y-5">
+            <div>
+                <label class="block mb-2 font-semibold">Username</label>
+                <input
+                        id="registerUsername"
+                        type="text"
+                        placeholder="username"
+                        class="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-5 py-4 outline-none focus:border-cyan-400 transition-colors"
+                />
+            </div>
+
+            <div>
+                <label class="block mb-2 font-semibold">Email</label>
+                <input
+                        id="registerEmail"
+                        type="email"
+                        placeholder="example@email.com"
+                        class="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-5 py-4 outline-none focus:border-cyan-400 transition-colors"
+                />
+            </div>
+
+            <div>
+                <label class="block mb-2 font-semibold">Password</label>
+                <input
+                        id="registerPassword"
+                        type="password"
+                        placeholder="********"
+                        class="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-5 py-4 outline-none focus:border-cyan-400 transition-colors"
+                />
+            </div>
+
+            <div>
+                <label class="block mb-2 font-semibold">Password Confirm</label>
+                <input
+                        id="registerPasswordConfirm"
+                        type="password"
+                        placeholder="********"
+                        class="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-5 py-4 outline-none focus:border-cyan-400 transition-colors"
+                />
+            </div>
+
+            <button onclick="register()" class="w-full bg-cyan-500 hover:scale-[1.02] transition-transform py-4 rounded-2xl font-bold text-lg shadow-lg">
+                회원가입
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<button
+        id="themeToggle"
+        class="fixed top-5 right-5 bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 px-5 py-3 rounded-2xl font-bold shadow-lg transition-colors"
+>
+    🌙 다크모드
+</button>
+
+<div class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-6 mt-[100px]">
+    <!-- Main Lobby -->
+    <div class="lg:col-span-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-8 shadow-2xl dark:shadow-[0_0_25px_rgba\(255,255,255,0.05\)] flex flex-col justify-between">
+
+        <div>
+            <div class="flex items-center justify-between mb-10">
+                <div>
+                    <h1 class="text-5xl font-black tracking-tight">TETRIS ARENA</h1>
+                    <p class="text-zinc-500 dark:text-zinc-300 mt-2">멀티플레이 온라인 로비</p>
+                </div>
+
+                <div id="loginButtons" class="flex gap-3">
+                    <button onclick="openLogin()" class="bg-emerald-500 hover:scale-105 transition-transform px-6 py-3 rounded-2xl font-bold shadow-lg">
+                        로그인
+                    </button>
+
+                    <button onclick="openSignup()" class="bg-cyan-500 hover:scale-105 transition-transform px-6 py-3 rounded-2xl font-bold shadow-lg">
+                        회원가입
+                    </button>
+                </div>
+            </div>
+
+            <!-- Room Create -->
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-8 mb-6">
+                <h2 class="text-3xl font-bold mb-3">방 만들기</h2>
+
+                <p class="text-zinc-500 dark:text-zinc-300 mb-6">
+                    새로운 1:1 테트리스 대전방을 생성합니다.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+
+                    <div class="flex-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-6 py-5 flex items-center justify-center text-xl font-bold">
+                        랜덤 4자리 코드 생성
+                    </div>
+
+                    <button
+                            onclick="createRoom()"
+                            class="bg-emerald-500 hover:scale-105 transition-transform px-8 py-5 rounded-2xl font-bold text-lg shadow-lg"
+                    >
+                        방 만들기
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- Room Join -->
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-8">
+                <h2 class="text-3xl font-bold mb-3">방 참가</h2>
+                <p class="text-zinc-500 dark:text-zinc-300 mb-6">
+                    친구에게 받은 4자리 방 코드를 입력하세요.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input
+                            id="roomCode"
+                            type="text"
+                            maxlength="4"
+                            placeholder="0000"
+                            class="flex-1 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-2xl px-6 py-5 text-center text-3xl tracking-[0.5em] font-black outline-none focus:border-emerald-400 transition-colors"
+                    />
+
+                    <button onclick="joinRoom()" class="bg-blue-500 hover:scale-105 transition-transform px-8 py-5 rounded-2xl font-bold text-lg shadow-lg">
+                        입장하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
+                <p class="text-zinc-500 dark:text-zinc-300 text-sm">현재 접속자</p>
+                <h3 class="text-3xl font-black mt-2">1,284</h3>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
+                <p class="text-zinc-500 dark:text-zinc-300 text-sm">진행 중 게임</p>
+                <h3 class="text-3xl font-black mt-2">312</h3>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
+                <p class="text-zinc-500 dark:text-zinc-300 text-sm">오늘 최고 점수</p>
+                <h3 class="text-3xl font-black mt-2">98K</h3>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
+                <p class="text-zinc-500 dark:text-zinc-300 text-sm">랭킹 시즌</p>
+                <h3 class="text-3xl font-black mt-2">S4</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Panel -->
+    <div  id="profile" class="bg-gradient-to-b from-white to-zinc-100 dark:from-zinc-900 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-8 shadow-2xl dark:shadow-[0_0_25px_rgba\(255,255,255,0.05\)]">
+
+        <div class="flex flex-col items-center text-center">
+            <div class="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-4xl font-black shadow-xl">
+                T
+            </div>
+
+            <h2 id="username" class="mt-5 text-2xl font-bold">TetrixMaster</h2>
+            <p class="text-zinc-500 dark:text-zinc-300 mt-1">Gold Tier</p>
+        </div>
+
+        <!-- Match Record -->
+        <div class="mt-8 space-y-4">
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
+                <span class="text-zinc-500 dark:text-zinc-300">총 플레이</span>
+                <span class="font-bold text-xl">248</span>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
+                <span class="text-zinc-500 dark:text-zinc-300">승리</span>
+                <span class="font-bold text-xl text-emerald-400">182</span>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
+                <span class="text-zinc-500 dark:text-zinc-300">패배</span>
+                <span class="font-bold text-xl text-red-400">66</span>
+            </div>
+
+            <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 flex items-center justify-between transition-colors">
+                <span class="text-zinc-500 dark:text-zinc-300">승률</span>
+                <span class="font-bold text-xl">73%</span>
+            </div>
+        </div>
+
+        <!-- Rank Bar -->
+        <div class="mt-8">
+            <div class="flex items-center justify-between mb-2 text-sm">
+                <span class="text-zinc-500 dark:text-zinc-300">랭크 포인트</span>
+                <span>1450 / 2000</span>
+            </div>
+
+            <div class="w-full h-4 bg-zinc-300 dark:bg-zinc-700 rounded-full overflow-hidden">
+                <div class="h-full w-[72%] bg-gradient-to-r from-emerald-400 to-cyan-400"></div>
+            </div>
+        </div>
+
+        <button class="w-full mt-10 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors py-4 rounded-2xl font-semibold">
+            프로필 상세보기
+        </button>
+
+    </div>
+</div>
+
+<script>
+    // front
+    {
+        const toggleBtn = document.getElementById('themeToggle');
+        const loginModal = document.getElementById('loginModal');
+        const signupModal = document.getElementById('signupModal');
+
+        function openLogin() {
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+        }
+
+        function closeLogin() {
+            loginModal.classList.add('hidden');
+            loginModal.classList.remove('flex');
+        }
+
+        function openSignup() {
+            signupModal.classList.remove('hidden');
+            signupModal.classList.add('flex');
+        }
+
+        function closeSignup() {
+            signupModal.classList.add('hidden');
+            signupModal.classList.remove('flex');
+        }
+
+        window.addEventListener('click', (e) => {
+            if (e.target === loginModal) closeLogin();
+            if (e.target === signupModal) closeSignup();
+        });
+        const html = document.documentElement;
+
+        if (localStorage.getItem('theme') === 'dark') {
+            html.classList.add('dark');
+            toggleBtn.innerHTML = '☀️ 라이트모드';
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            html.classList.toggle('dark');
+
+            if (html.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                toggleBtn.innerHTML = '☀️ 라이트모드';
+            } else {
+                localStorage.setItem('theme', 'light');
+                toggleBtn.innerHTML = '🌙 다크모드';
+            }
+        });
+    }
+
+    const token = localStorage.getItem("token");
+
+    function parseJwt(token) {
+
+        try{
+            return JSON.parse(
+                atob(token.split(".")[1])
+            );
+        }
+        catch{
+            return null;
+        }
+
+    }
+
+    if(token){
+
+        const user = parseJwt(token);
+
+        if(user){
+
+            document.getElementById("loginButtons")
+                .innerHTML = `
+                <div class="font-bold">
+                    ${user.username}
+                </div>
+                <button onclick="logout()"
+                class="bg-red-500 px-6 py-3 rounded-2xl">
+                    로그아웃
+                </button>
+            `;
+            document.getElementById("username")
+                .innerHTML = `${user.username}`;
+        }
+
+    }
+    else{
+        document.getElementById("profile").setAttribute("hidden","");
+    }
+
+    async function login() {
+
+        const email =
+            document.getElementById("loginEmail").value;
+
+        const password =
+            document.getElementById("loginPassword").value;
+
+        try {
+
+            const response = await fetch(
+                "/api/user/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":"application/json"
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password
+                    })
+                }
+            );
+
+            const result = await response.json();
+
+            alert(result.message);
+
+            if(response.ok){
+
+                localStorage.setItem(
+                    "token",
+                    result.token
+                );
+
+                location.reload();
+            }
+
+        } catch(err){
+            alert("로그인 실패");
+        }
+    }
+
+    async function register() {
+
+        const username =
+            document.getElementById("registerUsername").value;
+
+        const email =
+            document.getElementById("registerEmail").value;
+
+        const password =
+            document.getElementById("registerPassword").value;
+
+        const password_confirm =
+            document.getElementById("registerPasswordConfirm").value;
+
+        try{
+
+            const response = await fetch(
+                "/api/user/register",
+                {
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        password_confirm
+                    })
+                }
+            );
+
+            const result = await response.json();
+
+            alert(result.message);
+
+            if(response.ok){
+
+                closeSignup();
+                openLogin();
+
+            }
+
+        }catch(err){
+
+            alert("회원가입 실패");
+
+        }
+    }
+
+    function createRoom() {
+
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        const roomCode = Math.random()
+            .toString(36)
+            .substring(2, 6)
+            .toUpperCase();
+
+        location.href = `/room=${roomCode}`;
+    }
+
+    function joinRoom(){
+
+        const token =
+            localStorage.getItem("token");
+
+        if(!token){
+
+            alert("로그인이 필요합니다.");
+            return;
+        }
+
+        const roomCode =
+            document.getElementById("roomCode")
+                .value
+                .trim()
+                .toUpperCase();
+
+        if(roomCode.length !== 4){
+
+            alert("4자리 입력");
+
+            return;
+        }
+
+        location.href =
+            `/room=${roomCode}`;
+    }
+
+    function logout(){
+
+        localStorage.removeItem("token");
+        location.reload();
+
+    }
+
+</script>
+
 </body>
 </html>

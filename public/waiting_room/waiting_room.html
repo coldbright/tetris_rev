@@ -69,10 +69,15 @@
     generateStars(150);
     ///////////////////////////////////////////////////////////////////////////////////////////
 
+
     const token = localStorage.getItem("token");
+    console.log(token);
+
+
     const socket = io({
         auth: { token }
     });
+
     let isReady = false;
     let username;
 
@@ -119,6 +124,15 @@
     //     }, 1000);
     // });
 
+    socket.on("connect", () => {
+        console.log("연결 성공");
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("연결 실패");
+        console.log(err.message);
+    });
+
     const roomId = window.location.pathname.slice(-4);
     console.log(roomId);
     socket.emit("joinRoom", { roomId });
@@ -134,24 +148,27 @@
     //
     // });
 
-    socket.on("updateUsername", (name) => {
-        username = name;
-        document.getElementById("player1-status").innerText = `${username} : 대기 중`;
-    });
-
     socket.on("opponentReadyStatus", ({ nickname, isReady }) => {
         document.getElementById("player2-status").innerText = isReady
             ? `${nickname}: 준비 완료`
             : `${nickname}: 대기 중`;
     });
 
-    socket.on("secondplayer", () => {
+    socket.on("secondplayer", ({ name }) => {
         document.getElementById("player2").classList.remove("hidden");
+        document.getElementById("player2-status").innerText = `${name}: 대기 중`;
     });
+
+    socket.on("updateUsername", (name) => {
+        username = name;
+        document.getElementById("player1-status").innerText = `${username} : 대기 중`;
+    });
+
 
     socket.on("nosecondplayer", () => {
         document.getElementById("player2").classList.add("hidden");
     });
+
     socket.on("bothready",()=>{
         const overlay = document.getElementById("overlay");
         overlay.classList.add("show");
@@ -176,7 +193,7 @@
     }
 
     function leaveroom(){
-        socket.emit("leaveRoom", roomId);
+        socket.emit("leave_room", roomId);
         socket.disconnect();
         window.location.href = "/";
     }
