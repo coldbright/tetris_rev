@@ -159,6 +159,83 @@ io.on('connection', (socket) => {
         return null; // 닉네임 못 찾음
     }
 
+    function saveGameResult(winner, loser){
+
+        connection.beginTransaction(err => {
+
+            if(err){
+                console.error(err);
+                return;
+            }
+
+            connection.query(
+                `
+            UPDATE user_stats
+            SET
+                total_games = total_games + 1,
+                wins = wins + 1,
+                rank_points = rank_points + 30,
+                highest_rank_points =
+                    GREATEST(
+                        highest_rank_points,
+                        rank_points + 30
+                    )
+            WHERE username = ?
+            `,
+                [winner],
+                (err)=>{
+
+                    if(err){
+                        return connection.rollback(()=>{
+                            console.error(err);
+                        });
+                    }
+
+                    connection.query(
+                        `
+                    UPDATE user_stats
+                    SET
+                        total_games = total_games + 1,
+                        losses = losses + 1,
+                        rank_points =
+                            GREATEST(
+                                rank_points - 20,
+                                0
+                            )
+                    WHERE username = ?
+                    `,
+                        [loser],
+                        (err)=>{
+
+                            if(err){
+                                return connection.rollback(()=>{
+                                    console.error(err);
+                                });
+                            }
+
+                            connection.commit(err=>{
+
+                                if(err){
+                                    return connection.rollback(()=>{
+                                        console.error(err);
+                                    });
+                                }
+
+                                console.log(
+                                    `${winner} 승리`
+                                );
+                            });
+
+                        }
+                    );
+
+                }
+            );
+
+        });
+
+    }
+
     socket.on("joinRoom", ({ roomId }) => {
         console.log(1)
         const room = io.sockets.adapter.rooms.get(roomId);
@@ -258,7 +335,8 @@ io.on('connection', (socket) => {
         const deleteMapping = {
             1: 4,
             2: 12,
-            3: 20
+            3: 20,
+            4: 32
         };
 
         const line_deleted =
@@ -277,6 +355,25 @@ io.on('connection', (socket) => {
             opponent_nickname,
             -line_deleted
         );
+
+        const opponent = rooms[roomId].find(
+            p => p.nickname === opponent_nickname
+        );
+
+        if(opponent.health <= 0){
+
+            io.to(roomId).emit("gameOver",{
+                winner:nickname,
+                loser:opponent_nickname
+            });
+
+            saveGameResult(
+                nickname,
+                opponent_nickname
+            );
+
+            return;
+        }
 
         // 추가
         socket.to(roomId).emit(

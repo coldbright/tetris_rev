@@ -254,6 +254,147 @@
             border-radius: 10px;
             background-color: #122740;
         }
+
+        .result-overlay{
+
+            position:fixed;
+
+            top:0;
+            left:0;
+
+            width:100%;
+            height:100%;
+
+            background:rgba(0,0,0,.85);
+
+            display:flex;
+
+            flex-direction:column;
+
+            justify-content:center;
+            align-items:center;
+
+            z-index:99999;
+
+            opacity:0;
+
+            transition:.5s;
+        }
+
+        .result-overlay.show{
+            opacity:1;
+        }
+
+        .hidden{
+            display:none;
+        }
+
+        .result-title{
+
+            font-size:7rem;
+
+            font-weight:900;
+
+            letter-spacing:8px;
+        }
+
+        .result-title.victory{
+
+            color:#10f7c5;
+
+            text-shadow:
+                    0 0 20px rgba(16,247,197,.8),
+                    0 0 50px rgba(16,247,197,.4);
+
+            animation:
+                    pulseVictory 1.5s infinite;
+        }
+
+        @keyframes pulseVictory{
+
+            0%{
+                transform:scale(1);
+            }
+
+            50%{
+                transform:scale(1.08);
+            }
+
+            100%{
+                transform:scale(1);
+            }
+        }
+
+        .result-title.defeat{
+
+            color:#ff4d6d;
+
+            text-shadow:
+                    0 0 20px rgba(255,77,109,.8),
+                    0 0 50px rgba(255,77,109,.4);
+
+            animation:
+                    pulseDefeat 1.5s infinite;
+        }
+
+        @keyframes pulseDefeat{
+
+            0%{
+                transform:scale(1);
+            }
+
+            50%{
+                transform:scale(0.95);
+            }
+
+            100%{
+                transform:scale(1);
+            }
+        }
+
+        .result-score{
+
+            margin-top:20px;
+
+            font-size:2rem;
+
+            color:white;
+        }
+
+        .result-button{
+
+            margin-top:40px;
+
+            padding:12px 40px;
+
+            font-size:1.2rem;
+
+            font-weight:bold;
+
+            border:none;
+
+            border-radius:12px;
+
+            cursor:pointer;
+
+            background:#10f7c5;
+
+            color:#09090b;
+
+            transition:.2s;
+
+            box-shadow:
+                    0 0 20px rgba(16,247,197,.4);
+        }
+
+        .result-button:hover{
+
+            transform:scale(1.05);
+
+            box-shadow:
+                    0 0 30px rgba(16,247,197,.7);
+        }
+
     </style>
 </head>
 <body>
@@ -288,24 +429,43 @@
     </span>
 </div>
 
+<div id="gameResultOverlay" class="result-overlay hidden">
+
+    <div id="resultTitle" class="result-title"></div>
+
+    <div id="resultScore" class="result-score"></div>
+
+    <button
+            id="resultButton"
+            class="result-button"
+            onclick="goLobby()"
+    >
+        확인
+    </button>
+
+</div>
+
 </body>
 
 <script>
 
-    document.addEventListener(
-        "keydown",
-        (e)=>{
+    {
+        document.addEventListener(
+            "keydown",
+            (e) => {
 
-            if(e.key === "F5"){
-                e.preventDefault();
+                if (e.key === "F5") {
+                    e.preventDefault();
+                }
+
+                if (e.ctrlKey && e.key === "r") {
+                    e.preventDefault();
+                }
+
             }
+        );
+    }
 
-            if(e.ctrlKey && e.key === "r"){
-                e.preventDefault();
-            }
-
-        }
-    );
     function count_down() {
         const countEl = document.getElementById('count');
         const background = document.getElementById('dark');
@@ -363,6 +523,10 @@
         },3000);
     }
 
+    function goLobby(){
+        window.location.href = "/";
+    }
+
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -383,6 +547,15 @@
             console.error("소켓 연결 실패:", err.message);
         });
 
+        let myUsername = "";
+
+        socket.on(
+            "updateUsername",
+            (username)=>{
+                myUsername = username;
+            }
+        );
+
         socket.on(
             "attackMessage",
             ({attacker,damage}) => {
@@ -390,6 +563,17 @@
                 showDamageMessage(
                     attacker,
                     damage
+                );
+
+            }
+        );
+
+        socket.on(
+            "gameOver",
+            ({winner})=>{
+
+                showGameResult(
+                    winner === myUsername
                 );
 
             }
@@ -420,9 +604,6 @@
             const fill = document.getElementById(player + '_fill');
             fill.style.height = percent + '%';
             fill.style.backgroundColor = getGaugeColor(percent);
-        }
-
-        function gameover(){
         }
 
         // 예시: 게이지 수동 조정
@@ -776,10 +957,63 @@
             setGauge("player1", player2_health);
             setGauge("player2", player1_health);
         });
+
         socket.on('lower_gauge', ({ player1_health, player2_health })=>{
             setGauge("player1", player1_health);
             setGauge("player2", player2_health);
         })
+
+        function showGameResult(isWinner){
+
+            const overlay =
+                document.getElementById(
+                    "gameResultOverlay"
+                );
+
+            const title =
+                document.getElementById(
+                    "resultTitle"
+                );
+
+            const score =
+                document.getElementById(
+                    "resultScore"
+                );
+
+            overlay.classList.remove(
+                "hidden"
+            );
+
+            requestAnimationFrame(()=>{
+                overlay.classList.add(
+                    "show"
+                );
+            });
+
+            if(isWinner){
+
+                title.textContent =
+                    "VICTORY";
+
+                title.className =
+                    "result-title victory";
+
+                score.textContent =
+                    "+30 RP";
+            }
+            else{
+
+                title.textContent =
+                    "DEFEAT";
+
+                title.className =
+                    "result-title defeat";
+
+                score.textContent =
+                    "-20 RP";
+            }
+        }
+
     }
 
 </script>
