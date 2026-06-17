@@ -14,39 +14,97 @@
 <div id="starfield"></div>
 <div class="container">
     <ul id="user-list"></ul>
-    <div class="player-list">
-        <div class="player" id="player1">
-            <div class="profile-pic"></div>
-            <span id="player1-status">플레이어 1: 대기 중</span>
-            <br>
-            <div>전적</div>
-            <br>
-            <div id="player1-total">총 게임 : 0</div>
-            <br>
-            <div id="player1-win">승리 : 0</div>
-            <br>
-            <div id="player1-loss">패배 : 0</div>
-            <br>
-            <div id="player1-rate">승률 : 0%</div>
-        </div>
-        <div class="player hidden" id="player2">
-            <div class="profile-pic"></div>
-            <span id="player2-status">플레이어 2: 대기 중</span>
-            <br>
-            <div>전적</div>
-            <br>
-            <div id="player2-total">총 게임 : 0</div>
-            <br>
-            <div id="player2-win">승리 : 0</div>
-            <br>
-            <div id="player2-loss">패배 : 0</div>
-            <br>
-            <div id="player2-rate">승률 : 0%</div>
-        </div>
+    <div class="room-header">
+        <h1>TETRIS ARENA</h1>
+        <p>ROOM : <span id="roomCodeDisplay"></span></p>
     </div>
-    <div class="ready-status" id="readyStatus">상대방 준비 상태 확인 중...</div>
-    <button id="ready-button" class="ready-btn yellow" onclick="toggleReady()">준비 중</button>
-    <button id="leave-button" class="leave-btn" onclick="leaveroom()">나가기</button>
+
+<!--    <div class="server-info">-->
+<!--        <div>-->
+<!--            <span id="onlinePlayers">0</span>-->
+<!--            <small>ONLINE</small>-->
+<!--        </div>-->
+
+<!--        <div>-->
+<!--            <span id="activeGames">0</span>-->
+<!--            <small>MATCHES</small>-->
+<!--        </div>-->
+
+<!--        <div>-->
+<!--            <span>S4</span>-->
+<!--            <small>SEASON</small>-->
+<!--        </div>-->
+<!--    </div>-->
+
+    <div class="battle-area">
+
+        <div class="player-card" id="player1">
+            <div class="profile-circle">P1</div>
+
+            <h2 id="player1-status">플레이어 1</h2>
+
+            <div class="tier-section">
+                <div id="player1-tier-icon" class="tier-icon">🛡</div>
+                <div id="player1-tier" class="tier">IRON</div>
+            </div>
+
+            <div class="stats-box">
+                <div id="player1-total">Total Games : 0</div>
+                <div id="player1-win">Wins : 0</div>
+                <div id="player1-loss">Losses : 0</div>
+                <div id="player1-rate">Win Rate : 0%</div>
+            </div>
+        </div>
+
+        <div class="center-panel">
+
+            <div class="vs-text">
+                VS
+            </div>
+
+            <div class="match-info">
+                <div>RANKED MATCH</div>
+                <div>BEST OF 1</div>
+                <div>SEASON S0</div>
+            </div>
+
+        </div>
+
+        <div class="player-card hidden" id="player2">
+            <div class="profile-circle">P2</div>
+
+            <h2 id="player2-status">플레이어 2</h2>
+            <div class="tier-section">
+                <div id="player2-tier-icon" class="tier-icon">🛡</div>
+                <div id="player2-tier" class="tier">IRON</div>
+            </div>
+            <div class="stats-box">
+                <div id="player2-total">Total Games : 0</div>
+                <div id="player2-win">Wins : 0</div>
+                <div id="player2-loss">Losses : 0</div>
+                <div id="player2-rate">Win Rate : 0%</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="status-card" id="readyStatus">
+        Waiting for opponent...
+    </div>
+
+    <div class="button-group">
+        <button id="ready-button"
+                class="ready-btn"
+                onclick="toggleReady()">
+            Ready
+        </button>
+
+        <button id="leave-button"
+                class="leave-btn"
+                onclick="leaveroom()">
+            Leave Room
+        </button>
+    </div>
 </div>
 
 <script>
@@ -75,6 +133,40 @@
         }
     }
     generateStars(150);
+
+    function getTierIcon(tier){
+
+        switch(tier){
+
+            case "Iron":
+                return "🛡";
+
+            case "Bronze":
+                return "🥉";
+
+            case "Silver":
+                return "🥈";
+
+            case "Gold":
+                return "🥇";
+
+            case "Platinum":
+                return "💠";
+
+            case "Diamond":
+                return "💎";
+
+            case "Master":
+                return "👑";
+
+            case "Ranker":
+                return "🔥";
+
+            default:
+                return "🛡";
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -143,6 +235,10 @@
 
     const roomId = window.location.pathname.slice(-4);
     console.log(roomId);
+
+    document.getElementById("roomCodeDisplay")
+        .textContent = roomId;
+
     socket.emit("joinRoom", { roomId });
 
     socket.on("roomFull", () => {

@@ -6,19 +6,44 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        html {
-            touch-action: manipulation;
-            background-image: linear-gradient(175deg, #779ccc, #e9c2f4);
-            width: 100vw;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
+        html{
+            width:100vw;
+            height:100vh;
+            margin:0;
+            overflow:hidden;
+            touch-action:manipulation;
         }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        body{
+            width:100vw;
+            height:100vh;
+
+            margin:0;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            color:white;
+
+            background:
+                    radial-gradient(
+                            circle at 20% 50%,
+                            rgba(16,247,197,.12),
+                            transparent 35%
+                    ),
+
+                    radial-gradient(
+                            circle at 80% 50%,
+                            rgba(77,166,255,.12),
+                            transparent 35%
+                    ),
+
+                    linear-gradient(
+                            180deg,
+                            #18181b 0%,
+                            #09090b 100%
+                    );
         }
 
         .wrapper-container {
@@ -29,6 +54,78 @@
             gap: 30px;
             margin-top: 30px;
             left: -50px;
+        }
+
+        #damageNotifications{
+            position:fixed;
+
+            top:20px;
+            left:20px;
+
+            z-index:9999;
+
+            display:flex;
+            flex-direction:column;
+
+            gap:10px;
+
+            pointer-events:none;
+        }
+
+        .damage-message{
+
+            background:
+                    rgba(24,24,27,.95);
+
+            color:#10f7c5;
+
+            border-left:4px solid #10f7c5;
+
+            padding:14px 18px;
+
+            border-radius:10px;
+
+            font-weight:700;
+
+            min-width:250px;
+
+            box-shadow:
+                    0 0 15px rgba(16,247,197,.2);
+
+            animation:damageSlide 3s forwards;
+        }
+
+        .damage-message.big{
+
+            color:#ff4d6d;
+
+            border-left:4px solid #ff4d6d;
+
+            box-shadow:
+                    0 0 20px rgba(255,77,109,.3);
+        }
+
+        @keyframes damageSlide{
+
+            0%{
+                transform:translateX(-100%);
+                opacity:0;
+            }
+
+            10%{
+                transform:translateX(0);
+                opacity:1;
+            }
+
+            80%{
+                transform:translateX(0);
+                opacity:1;
+            }
+
+            100%{
+                transform:translateX(-120%);
+                opacity:0;
+            }
         }
 
         .tetris-container {
@@ -43,19 +140,48 @@
         }
 
         .tetris-panel-container {
-            display: flex;
-            padding-left: 10px;
-            padding-right: 10px;
-            flex-direction: column;
-            color: white;
-            background-color: #333333;
-            width: 100%;
-            height: 100%;
+
+            display:flex;
+            flex-direction:column;
+
+            padding-left:15px;
+            padding-right:15px;
+
+            background:
+                    rgba(24,24,27,.95);
+
+            border:1px solid #3f3f46;
+
+            border-radius:12px;
+
+            color:white;
         }
 
         .tetris-panel-container p {
             margin: 0;
             padding: 0;
+        }
+
+        #stage{
+            background:black;
+
+            border:2px solid #10f7c5;
+
+            border-radius:8px;
+
+            box-shadow:
+                    0 0 20px rgba(16,247,197,.4),
+                    0 0 40px rgba(16,247,197,.2);
+        }
+
+        #next{
+
+            border:1px solid #3f3f46;
+
+            border-radius:8px;
+
+            box-shadow:
+                    0 0 10px rgba(77,166,255,.25);
         }
 
         /* 게이지 스타일 */
@@ -106,12 +232,18 @@
         }
 
         .countdown{
-            position: absolute;
-            justify-content: center;
-            align-items: flex-start;
-            font-size: 8em;
-            color: white;
-            z-index: 20;
+
+            position:absolute;
+
+            font-size:8em;
+
+            color:#10f7c5;
+
+            text-shadow:
+                    0 0 20px rgba(16,247,197,.8),
+                    0 0 40px rgba(16,247,197,.5);
+
+            z-index:20;
         }
 
         .health{
@@ -125,6 +257,8 @@
     </style>
 </head>
 <body>
+
+<div id="damageNotifications"></div>
 
 <div id="dark" class="dark opacity"></div>
 <div id="count">3</div>
@@ -154,7 +288,24 @@
     </span>
 </div>
 
+</body>
+
 <script>
+
+    document.addEventListener(
+        "keydown",
+        (e)=>{
+
+            if(e.key === "F5"){
+                e.preventDefault();
+            }
+
+            if(e.ctrlKey && e.key === "r"){
+                e.preventDefault();
+            }
+
+        }
+    );
     function count_down() {
         const countEl = document.getElementById('count');
         const background = document.getElementById('dark');
@@ -183,6 +334,34 @@
         }, 1000);
     }
 
+    function showDamageMessage(attacker, damage){
+
+        const box =
+            document.getElementById(
+                "damageNotifications"
+            );
+
+        const msg =
+            document.createElement("div");
+
+        if(damage >= 4){
+            msg.className = "damage-message big";
+        }
+        else{
+            msg.className = "damage-message";
+        }
+
+
+        msg.textContent =
+            `${attacker} attacked with ${damage} lines`;
+
+        box.appendChild(msg);
+
+        setTimeout(()=>{
+            msg.remove();
+        },3000);
+    }
+
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -202,6 +381,18 @@
         socket.on("connect_error", (err) => {
             console.error("소켓 연결 실패:", err.message);
         });
+
+        socket.on(
+            "attackMessage",
+            ({attacker,damage}) => {
+
+                showDamageMessage(
+                    attacker,
+                    damage
+                );
+
+            }
+        );
 
         // 이후 socket 사용 코드들 작성
         const path = window.location.pathname; // "/room=abcd/game"
@@ -592,5 +783,4 @@
 
 </script>
 
-</body>
 </html>

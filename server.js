@@ -252,12 +252,40 @@ io.on('connection', (socket) => {
     socket.on("line_deleted", (deletedThisTurn, roomId) =>{
         const nickname = socket.data.nickname;
         const opponent_nickname = findOpponentNickname(rooms, roomId, nickname);
+
         const players = rooms[roomId];
-        console.log(deletedThisTurn, roomId, nickname);
-        const deleteMapping = { 1: 4, 2: 12, 3: 20 };
-        const line_deleted = deleteMapping[deletedThisTurn] || 32;
-        changeHealth(rooms, roomId, nickname, line_deleted/2);
-        changeHealth(rooms, roomId, opponent_nickname, -(line_deleted));
+
+        const deleteMapping = {
+            1: 4,
+            2: 12,
+            3: 20
+        };
+
+        const line_deleted =
+            deleteMapping[deletedThisTurn] || 32;
+
+        changeHealth(
+            rooms,
+            roomId,
+            nickname,
+            line_deleted / 2
+        );
+
+        changeHealth(
+            rooms,
+            roomId,
+            opponent_nickname,
+            -line_deleted
+        );
+
+        // 추가
+        socket.to(roomId).emit(
+            "attackMessage",
+            {
+                attacker: nickname,
+                damage: deletedThisTurn
+            }
+        );
 
         let player1_health = null;
         let player2_health = null;
@@ -270,9 +298,15 @@ io.on('connection', (socket) => {
             }
         }
 
-        console.log(rooms[roomId]);
-        socket.to(roomId).emit("higher_gauge", { player1_health, player2_health });
-        socket.emit("lower_gauge", { player1_health, player2_health });
+        socket.to(roomId).emit(
+            "higher_gauge",
+            { player1_health, player2_health }
+        );
+
+        socket.emit(
+            "lower_gauge",
+            { player1_health, player2_health }
+        );
     });
 
     socket.on("leave_room",(roomId) => {
