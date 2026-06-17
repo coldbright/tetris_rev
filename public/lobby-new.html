@@ -2,14 +2,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-
-    <script>
-        tailwind = {
-            config: {
-                darkMode: 'class'
-            }
-        }
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tetris Arena Lobby</title>
@@ -189,23 +181,23 @@
         <!-- Stats -->
         <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
-                <p class="text-zinc-500 dark:text-zinc-300 text-sm">현재 접속자</p>
-                <h3 class="text-3xl font-black mt-2">1,284</h3>
+                <p class="text-zinc-500 dark:text-zinc-300 text-sm">현재 플레이어</p>
+                <h3 id="onlinePlayers" class="text-3xl font-black mt-2">0</h3>
             </div>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
                 <p class="text-zinc-500 dark:text-zinc-300 text-sm">진행 중 게임</p>
-                <h3 class="text-3xl font-black mt-2">312</h3>
+                <h3 id="activeGames" class="text-3xl font-black mt-2">0</h3>
             </div>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
                 <p class="text-zinc-500 dark:text-zinc-300 text-sm">오늘 최고 점수</p>
-                <h3 class="text-3xl font-black mt-2">98K</h3>
+                <h3 class="text-3xl font-black mt-2">0</h3>
             </div>
 
             <div class="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 transition-colors">
                 <p class="text-zinc-500 dark:text-zinc-300 text-sm">랭킹 시즌</p>
-                <h3 class="text-3xl font-black mt-2">S4</h3>
+                <h3 class="text-3xl font-black mt-2">S0</h3>
             </div>
         </div>
     </div>
@@ -219,7 +211,7 @@
             </div>
 
             <h2 id="username" class="mt-5 text-2xl font-bold">TetrixMaster</h2>
-            <p class="text-zinc-500 dark:text-zinc-300 mt-1">Gold Tier</p>
+            <p id="tier" class="text-zinc-500 dark:text-zinc-300 mt-1">아이언</p>
         </div>
 
         <!-- Match Record -->
@@ -320,6 +312,7 @@
         });
     }
 
+
     const token = localStorage.getItem("token");
 
     function parseJwt(token) {
@@ -361,6 +354,8 @@
     else{
         document.getElementById("profile").setAttribute("hidden","");
     }
+
+
 
     async function login() {
 
@@ -455,6 +450,41 @@
         }
     }
 
+
+    async function loadServerStats(){
+
+        try{
+
+            const response =
+                await fetch("/api/server-stats");
+
+            const stats =
+                await response.json();
+
+            document.getElementById("onlinePlayers")
+                .textContent = stats.players;
+
+            document.getElementById("activeGames")
+                .textContent = stats.games;
+
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
+
+    tailwind = {
+        config: {
+            darkMode: 'class'
+        }
+    }
+
+    loadServerStats();
+
+    setInterval(() => {
+        loadServerStats();
+    }, 3000);
+
     function createRoom() {
 
         const token = localStorage.getItem("token");
@@ -521,6 +551,8 @@
                 return;
             }
 
+            const tierMax = getTierMax(stats.rank_points);
+
             document.getElementById("totalGames")
                 .textContent = stats.total_games;
 
@@ -535,7 +567,7 @@
 
             document.getElementById("rankPoints")
                 .textContent =
-                `${stats.rank_points} / 2000`;
+                `${stats.rank_points} / ${tierMax}`;
 
             const percent =
                 Math.min(
@@ -546,11 +578,41 @@
             document.getElementById("rankBar")
                 .style.width = percent + "%";
 
+            document.getElementById("tier").textContent =
+                getTier(stats.rank_points);
+
         }
         catch(err){
             console.error(err);
         }
     }
+
+    function getTier(rankPoints){
+
+        if(rankPoints <= 500) return "Iron";
+        if(rankPoints <= 1000) return "Bronze";
+        if(rankPoints <= 1500) return "Silver";
+        if(rankPoints <= 2000) return "Gold";
+        if(rankPoints <= 3000) return "Platinum";
+        if(rankPoints <= 4000) return "Diamond";
+        if(rankPoints <= 5000) return "Master";
+
+        return "Ranker";
+    }
+
+    function getTierMax(rankPoints){
+
+        if(rankPoints <= 500) return 500;
+        if(rankPoints <= 1000) return 1000;
+        if(rankPoints <= 1500) return 1500;
+        if(rankPoints <= 2000) return 2000;
+        if(rankPoints <= 3000) return 3000;
+        if(rankPoints <= 4000) return 4000;
+        if(rankPoints <= 5000) return 5000;
+
+        return rankPoints;
+    }
+
 
 </script>
 

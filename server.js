@@ -55,6 +55,31 @@ app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login&register/login.html'));
 });
 
+app.get('/api/server-stats', (req, res) => {
+
+    let totalPlayers = 0;
+    let activeGames = 0;
+
+    for(const roomId in rooms){
+
+        const players = rooms[roomId];
+
+        totalPlayers += players.length;
+
+        if(players.length === 2){
+            activeGames++;
+        }
+    }
+
+    // console.log(totalPlayers, activeGames)
+
+    res.json({
+        players: totalPlayers,
+        games: activeGames
+    });
+});
+
+
 //Socket 인증 처리
 io.use((socket, next) => {
     const token = socket.handshake.auth.token;
