@@ -529,6 +529,11 @@
 
     const token = localStorage.getItem("token");
 
+    // socket.on("roomFull", () => {
+    //     alert("이 방은 이미 가득 찼습니다. 로비로 돌아갑니다.");
+    //     window.location.href = "/";
+    // });
+
     if (!token) {
         alert('로그인이 필요합니다');
         window.location.href = '/login';
@@ -585,6 +590,23 @@
 
         console.log(roomId);
         socket.emit("joinRoom", { roomId });
+
+        let joined = false;
+
+        socket.on("joinSuccess", () => {
+            joined = true;
+        });
+
+        setTimeout(() => {
+
+            if(!joined){
+
+                alert("잘못된 접근입니다.");
+
+                window.location.href = "/";
+            }
+
+        },1000);
 
 
         function getGaugeColor(percent) {
@@ -1015,6 +1037,8 @@
         }
 
     }
+
+
 
 </script>
 

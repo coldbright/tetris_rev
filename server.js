@@ -277,6 +277,11 @@ io.on('connection', (socket) => {
         }
 
         socket.emit("updateUsername", socket.data.nickname);
+
+        socket.emit("joinSuccess", {
+            roomId,
+            username: socket.data.nickname
+        });
     });
 
     socket.on("get_score", (username)=>{
